@@ -1,0 +1,7 @@
+Os melhores valores conhecidos para cada instâncias:
+
+Teste 01: 558.0000
+
+Teste 02:
+
+Wren 01 : 7856.000

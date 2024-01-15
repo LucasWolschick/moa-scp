@@ -1,5 +1,6 @@
 from random import choice
 from typing import Iterable
+from time import time
 from app.problema_parser import Instancia
 
 import math
@@ -55,9 +56,26 @@ def constroi_solucao(entrada: Instancia, f=GULOSOS[2]):
 
     return solucao
 
+def custo_solucao(entrada: Instancia, solucao: set[int]) -> float:
+    return sum(entrada.dados[x].custo for x in solucao)
 
 def encontra_solucao(entrada: Instancia):
-    solucao = constroi_solucao(entrada)
+    from app.jacobs_brusco import jacobs_brusco
+
+    print("Encontrada solucao inicial...")
+    solucao = constroi_solucao(entrada, lambda cj, kj: choice(GULOSOS)(cj, kj) if kj > 1 else choice(GULOSOS[:5])(cj, kj))
+    print(solucao, custo_solucao(entrada, solucao))
+
+    now = time()
+    for i in range(100):
+        print(f"[{i+1}/100] Melhorando...")
+        nova_solucao = set(jacobs_brusco(entrada, 0.8, 1.1, list(solucao), list(set(range(entrada.n_colunas)) - solucao)))
+        if custo_solucao(entrada, nova_solucao) <= custo_solucao(entrada, solucao):
+            print("Melhorou")
+            solucao = nova_solucao
+    print(f"Levou {time()-now}")
+
+    print(f"Solução valida: {solucao_valida(entrada, solucao)}")
 
     return solucao
 

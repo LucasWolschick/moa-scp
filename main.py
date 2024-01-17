@@ -1,4 +1,4 @@
-from app.problema_parser import parse_problema
+from app.parser import parse_problema
 from app.resolve import resolve
 
 import argparse

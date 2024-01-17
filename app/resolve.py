@@ -3,14 +3,13 @@ from typing import Iterable
 from time import time
 
 from dataclasses import dataclass
-from app.lista_ordenada import inter_olista, sub_olista
-from app.problema_parser import Instancia
+import app.lista_ordenada as lista_ordenada
+from app.parser import Instancia
 
 import math
 
 # Vasco, Wilson (1984)
 GULOSOS = [
-    lambda cj, kj: -kj,
     lambda cj, kj: cj,
     lambda cj, kj: cj / kj,
     lambda cj, kj: cj / kj**2,
@@ -39,8 +38,8 @@ class Trabalho:
 
 
 def trabalho_from_instancia(instancia: Instancia) -> Trabalho:
-    linhas = [[] for _ in range(instancia.n_linhas)]
-    colunas = [[] for _ in range(instancia.n_colunas)]
+    linhas: list[list[int]] = [[] for _ in range(instancia.n_linhas)]
+    colunas: list[list[int]] = [[] for _ in range(instancia.n_colunas)]
     custos = [0.0] * instancia.n_colunas
 
     for coluna in instancia.dados:
@@ -49,11 +48,11 @@ def trabalho_from_instancia(instancia: Instancia) -> Trabalho:
             linhas[linha].append(coluna.id)
         custos[coluna.id] = coluna.custo
 
-    for coluna in colunas:
-        coluna.sort()
+    for col in colunas:
+        col.sort()
 
-    for linha in linhas:
-        linha.sort()
+    for lin in linhas:
+        lin.sort()
 
     return Trabalho(
         instancia=instancia,
@@ -73,9 +72,20 @@ def solucao_valida(entrada: Trabalho, solucao: Iterable[int]) -> bool:
     return len(linhas_faltando) == 0
 
 
+def remove_redundantes(entrada: Trabalho, solucao: list[int]) -> list[int]:
+    l = solucao.copy()
+    l.sort(key=lambda c: entrada.custos[c])
+    for i in range(len(l) - 1, -1, -1):
+        e = l.pop(i)
+        if not solucao_valida(entrada, l):
+            l.append(e)
+    l.sort()
+    return l
+
+
 def constroi_solucao(entrada: Trabalho, f=GULOSOS[2]):
     linhas_faltando = list(range(entrada.n_linhas))
-    solucao = set()
+    solucao = []
     colunas_nao_usadas = set(range(entrada.n_colunas))
 
     # primeira passada
@@ -83,23 +93,16 @@ def constroi_solucao(entrada: Trabalho, f=GULOSOS[2]):
         candidatos = []
         for coluna in colunas_nao_usadas:
             cj = entrada.custos[coluna]
-            kj = len(inter_olista(entrada.colunas[coluna], linhas_faltando))
+            kj = len(lista_ordenada.inter(entrada.colunas[coluna], linhas_faltando))
             if kj > 0:
                 candidatos.append((coluna, f(cj, kj)))
         col = min(candidatos, key=lambda x: x[1])[0]
-        solucao.add(col)
+        lista_ordenada.insere(solucao, col)
         colunas_nao_usadas.remove(col)
-        linhas_faltando = sub_olista(linhas_faltando, entrada.colunas[col])
+        linhas_faltando = lista_ordenada.sub(linhas_faltando, entrada.colunas[col])
 
     # segunda passada
-    l = list(solucao)
-    l.sort(key=lambda c: entrada.custos[c])
-    for i in range(len(l) - 1, -1, -1):
-        e = l.pop(i)
-        if not solucao_valida(entrada, l):
-            l.append(e)
-
-    solucao = set(l)
+    solucao = remove_redundantes(entrada, solucao)
 
     return solucao
 
@@ -123,36 +126,40 @@ def encontra_solucao(entrada: Trabalho):
         if kj > 1
         else choice(GULOSOS[:5])(cj, kj),
     )
-    print(solucao, custo_solucao(entrada, solucao))
+    custo_sol = custo_solucao(entrada, solucao)
+    print(solucao, custo_sol)
 
     now = time()
     best_rho1 = 0
     best_rho2 = 0
+
     old_sol = solucao
+    custo_old_sol = custo_sol
+
     melhor = solucao
+    custo_melhor_sol = custo_sol
+
     for rho1 in rrange(0.10, 1.00, 10):
-        for rho2 in rrange(1.1, 2.0, 10):
+        for rho2 in rrange(1.1, 3.0, 10):
             print(rho1, rho2)
             solucao = old_sol
-            for i in range(100):
-                # if i % 20 == 0:
-                #    print(f"[{i+1}/100] Melhorando...")
-                nova_solucao = set(
-                    jacobs_brusco(
-                        entrada,
-                        rho1,
-                        rho2,
-                        list(solucao),
-                        list(set(range(entrada.n_colunas)) - solucao),
-                    )
+            custo_sol = custo_old_sol
+            for _ in range(100):
+                nova_solucao = jacobs_brusco(
+                    entrada,
+                    rho1,
+                    rho2,
+                    solucao,
+                    lista_ordenada.sub(list(range(entrada.n_colunas)), solucao),
                 )
-                if custo_solucao(entrada, nova_solucao) <= custo_solucao(
-                    entrada, solucao
-                ):
-                    # print("Melhorou")
+                custo_nova_solucao = custo_solucao(entrada, nova_solucao)
+
+                if custo_nova_solucao <= custo_sol:
                     solucao = nova_solucao
-                    if custo_solucao(entrada, solucao) < custo_solucao(entrada, melhor):
+                    custo_sol = custo_nova_solucao
+                    if custo_sol < custo_melhor_sol:
                         melhor = solucao
+                        custo_melhor_sol = custo_sol
                         best_rho1 = rho1
                         best_rho2 = rho2
     print(f"Melhores parâmetros: rho1={best_rho1}, rho2={best_rho2}")

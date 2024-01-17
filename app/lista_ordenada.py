@@ -1,22 +1,22 @@
 import bisect
 
 
-def contem_olista(lista: list, x):
+def contem(lista: list, x):
     i = bisect.bisect_left(lista, x)
     return i != len(lista) and lista[i] == x and i
 
 
-def insere_olista(lista: list, x):
+def insere(lista: list, x):
     i = bisect.bisect(lista, x)
     lista.insert(i, x)
 
 
-def remove_olista(lista: list, x):
-    if i := contem_olista(lista, x):
+def remove(lista: list, x):
+    if i := contem(lista, x):
         lista.pop(i)
 
 
-def uniao_olista(lhs: list, rhs: list):
+def uniao(lhs: list, rhs: list):
     res = []
     il = 0
     ir = 0
@@ -40,7 +40,7 @@ def uniao_olista(lhs: list, rhs: list):
     return res
 
 
-def inter_olista(lhs: list, rhs: list):
+def inter(lhs: list, rhs: list):
     res = []
     il = 0
     ir = 0
@@ -58,7 +58,7 @@ def inter_olista(lhs: list, rhs: list):
     return res
 
 
-def sub_olista(lhs: list, rhs: list):
+def sub(lhs: list, rhs: list):
     res = []
     il = 0
     ir = 0

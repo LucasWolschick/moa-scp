@@ -1,8 +1,8 @@
 import math
 from random import choice, randrange
-from app.lista_ordenada import insere_olista, inter_olista, remove_olista
+import app.lista_ordenada as lista_ordenada
 
-from app.resolve import solucao_valida, Trabalho
+from app.resolve import solucao_valida, remove_redundantes, Trabalho
 
 
 def jacobs_brusco(
@@ -25,7 +25,7 @@ def jacobs_brusco(
         ik = randrange(len(S))
         # 2
         k = S.pop(ik)
-        insere_olista(Sl, k)
+        lista_ordenada.insere(Sl, k)
         for lin in entrada.colunas[k]:
             w[lin] -= 1
         d = d + 1
@@ -53,20 +53,8 @@ def jacobs_brusco(
                 # SlE será ordenado
                 SlE.append(col)
 
-        # def alpha(i, j):
-        #     # retorna 1 se a linha não está coberta mas pode ser coberta pela coluna j
-        #     return w[i] == 0 and i in entrada.dados[j].elem
-
-        # def v(j):
-        #     # soma alphas da coluna
-        #     soma = 0
-        #     for i in entrada.dados[j].elem:
-        #         soma += alpha(i, j)
-        #     return soma
-
         def beta_j(j):
-            # quantas linhas de U j cobre?
-            vj = cobre_U[j]  # len(inter_olista(entrada.colunas[j], U))
+            vj = cobre_U[j]
             if vj > 0:
                 return entrada.custos[j] / vj
             else:
@@ -78,8 +66,8 @@ def jacobs_brusco(
 
         # 5
         k = choice(K)
-        remove_olista(Sl, k)
-        insere_olista(S, k)
+        lista_ordenada.remove(Sl, k)
+        lista_ordenada.insere(S, k)
         for lin in entrada.colunas[k]:
             w[lin] += 1
 
@@ -95,11 +83,6 @@ def jacobs_brusco(
                 U.append(lin)
 
     # 6
-    l = list(S)
-    l.sort(key=lambda c: entrada.custos[c])
-    for i in range(len(l) - 1, -1, -1):
-        e = l.pop(i)
-        if not solucao_valida(entrada, l):
-            l.append(e)
+    l = remove_redundantes(entrada, S)
 
-    return S
+    return l

@@ -14,9 +14,9 @@ GULOSOS = [
     lambda cj, kj: cj / kj,
     lambda cj, kj: cj / kj**2,
     lambda cj, kj: cj**0.5 / kj**2,
-    lambda cj, kj: cj / math.log2(kj),
-    lambda cj, kj: cj / (kj * math.log2(kj)),
-    lambda cj, kj: cj / (kj * math.log(kj)),
+    lambda cj, kj: cj / math.log2(kj + 1),
+    lambda cj, kj: cj / (kj * math.log2(kj + 1)),
+    lambda cj, kj: cj / (kj * math.log(kj + 1)),
 ]
 
 

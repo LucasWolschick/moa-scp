@@ -2,7 +2,7 @@ import math
 from random import choice, randrange
 import app.lista_ordenada as lista_ordenada
 
-from app.resolve import solucao_valida, remove_redundantes, Trabalho
+from app.resolve import GULOSOS, solucao_valida, remove_redundantes, Trabalho
 
 
 def jacobs_brusco(
@@ -16,8 +16,8 @@ def jacobs_brusco(
     D = math.ceil(rho1 * len(S))
     E = math.ceil(rho2 * max(custo for i, custo in enumerate(entrada.custos) if i in S))
     w = [0] * entrada.n_linhas
-    for col in S:
-        for lin in entrada.colunas[col]:
+    for colu in S:
+        for lin in entrada.colunas[colu]:
             w[lin] += 1
 
     while d != D:
@@ -44,19 +44,20 @@ def jacobs_brusco(
                 cobre_U[icol] += 1
 
     # toda vez que U é modificado, temos que modificar cobre_U.
+    func = choice(GULOSOS)
 
     while U:
         # 4
         SlE = []
-        for col in Sl:
-            if entrada.custos[col] < E:
+        for colun in Sl:
+            if entrada.custos[colun] < E:
                 # SlE será ordenado
                 SlE.append(col)
 
         def beta_j(j):
             vj = cobre_U[j]
             if vj > 0:
-                return entrada.custos[j] / vj
+                return func(entrada.custos[j], vj)
             else:
                 return math.inf
 

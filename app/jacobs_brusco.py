@@ -52,7 +52,7 @@ def jacobs_brusco(
         for colun in Sl:
             if entrada.custos[colun] < E:
                 # SlE será ordenado
-                SlE.append(col)
+                SlE.append(colun)
 
         def beta_j(j):
             vj = cobre_U[j]

@@ -10,6 +10,14 @@ def swap_k_opt(
     k: int = 1,
     func=GULOSOS[1],
 ):
+    """
+    Encontra todas as soluções vizinhas de *S* obtidas removendo-se k colunas de *S* e
+    as substituindo pelas colunas de menor custo que cobrem as linhas que não estão
+    cobertas por *S*, segundo a heurística *func*, que retorna um valor numérico para
+    um custo e um número de linhas cobertas.
+
+    Retorna a melhor solução encontrada.
+    """
     # remove redundâncias da solução
     S_original = list(S)
     custo_original = custo_solucao(entrada, set(S_original))
@@ -18,9 +26,6 @@ def swap_k_opt(
     best_cost = custo_original
 
     for removed_cols_t in combinations(S_original, k):
-        # print("removing", removed_cols_t)
-        # para cada combinação de k colunas na solução, trocar por um conjunto
-        # mínimo de colunas que preencham (ordenadas de acordo com a função gulosa)
         S = lista_ordenada.sub(S_original, list(removed_cols_t))
         removed_cols = set(removed_cols_t)
         w = [0] * entrada.n_linhas  # número de colunas que cobrem cada linha
@@ -35,7 +40,6 @@ def swap_k_opt(
                 if w[lin] == 0:  # está em U
                     cobre_U[icol] += 1
 
-        # encontre as linhas que devem ser preenchidas
         U_count = sum(count > 0 for count in w)
 
         # candidatos que ajudam a preencher as linhas
@@ -61,7 +65,6 @@ def swap_k_opt(
                 for col_cobria_lin in entrada.linhas[lin]:
                     cobre_U[col_cobria_lin] -= 1
 
-            # encontre as linhas que devem ser preenchidas
             U_count = sum(count > 0 for count in w)
 
             # candidatos que ajudam a preencher as linhas

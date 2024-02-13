@@ -13,6 +13,24 @@ def jacobs_brusco(
     Sl: list[int],
     func=GULOSOS[1],
 ):
+    """
+    Encontra uma solução vizinha de *S* usando a proposta de Jacobs e Brusco.
+
+    *S* é a solução atual.
+
+    *Sl* é a lista de colunas que não estão em *S*.
+
+    *rho1* é a porcentagem de colunas de *S* que serão removidas.
+
+    *rho2* é a porcentagem do custo máximo das colunas em *S* abaixo da qual uma coluna
+    de *Sl* deverá ter para ser uma candidata a ser adicionada a *S*.
+
+    *func* é a função gulosa usada para escolher as colunas de *Sl* que serão adicionadas
+     a *S*.
+
+    A função *func* deve receber dois parâmetros: o custo da coluna e quantas linhas ela
+    cobre, e retornar um valor númerico.
+    """
     S = list(S)
     Sl = list(Sl)
 

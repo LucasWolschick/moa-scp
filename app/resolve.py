@@ -18,14 +18,21 @@ GULOSOS = [
     lambda cj, kj: cj / (kj * math.log2(kj + 1)),
     lambda cj, kj: cj / (kj * math.log(kj + 1)),
 ]
+"""Lista de heurísticas gulosas que podem ser usadas nos algoritmos."""
 
 
 @dataclass
 class Trabalho:
+    """Uma instância do problema de cobertura de conjuntos sendo processada."""
+
     instancia: Instancia
+    """A instância original do problema."""
 
     n_linhas: int
+    """Número de linhas na matriz de dados."""
+
     n_colunas: int
+    """Número de colunas na matriz de dados."""
 
     linhas: list[list[int]]
     """Colunas cobertas por cada linha"""
@@ -38,6 +45,7 @@ class Trabalho:
 
 
 def trabalho_from_instancia(instancia: Instancia) -> Trabalho:
+    """Gera um objeto Trabalho a partir de uma instância *instancia* do problema de cobertura de conjuntos."""
     linhas: list[list[int]] = [[] for _ in range(instancia.n_linhas)]
     colunas: list[list[int]] = [[] for _ in range(instancia.n_colunas)]
     custos = [0.0] * instancia.n_colunas
@@ -65,6 +73,7 @@ def trabalho_from_instancia(instancia: Instancia) -> Trabalho:
 
 
 def solucao_valida(entrada: Trabalho, solucao: Iterable[int]) -> bool:
+    """Verifica se uma solução *solucao* é válida para a instância *entrada* dada."""
     linhas_faltando = set(range(entrada.n_linhas))
     for coluna in solucao:
         for elem in entrada.colunas[coluna]:
@@ -73,6 +82,9 @@ def solucao_valida(entrada: Trabalho, solucao: Iterable[int]) -> bool:
 
 
 def remove_redundantes(entrada: Trabalho, solucao: list[int]) -> list[int]:
+    """
+    Retorna uma nova solução removendo colunas redundantes de *solucao* para uma dada *entrada*.
+    """
     l = solucao.copy()
     l.sort(key=lambda c: entrada.custos[c])
     for i in range(len(l) - 1, -1, -1):
@@ -84,6 +96,7 @@ def remove_redundantes(entrada: Trabalho, solucao: list[int]) -> list[int]:
 
 
 def constroi_solucao(entrada: Trabalho, f=GULOSOS[0]):
+    """Constrói uma solução inicial para a instância *entrada* usando a heurística gulosa *f*."""
     linhas_faltando = list(range(entrada.n_linhas))
     solucao = []
     colunas_nao_usadas = set(range(entrada.n_colunas))
@@ -108,22 +121,29 @@ def constroi_solucao(entrada: Trabalho, f=GULOSOS[0]):
 
 
 def custo_solucao(entrada: Trabalho, solucao: set[int]) -> float:
+    """Calcula o custo de uma solução *solucao* para a instância *entrada*."""
     return sum(entrada.custos[x] for x in solucao)
 
 
-def rrange(start, stop, steps):
-    for i in range(steps):
-        yield (1 - i / (steps - 1)) * start + i / (steps - 1) * stop
+def rrange(inicio, fim, passos):
+    """
+    Gera uma sequência de *passos* números entre *inicio* e *fim* de forma linear.
+
+    Retorna um gerador que gera os números da sequência.
+    """
+    for i in range(passos):
+        yield (1 - i / (passos - 1)) * inicio + i / (passos - 1) * fim
 
 
 def encontra_solucao_2(entrada: Trabalho):
+    """Retorna uma solução para a instância *entrada* usando o algoritmo inspirado no k-opt."""
     from app.swap_k_opt import swap_k_opt
 
     print("Encontrada solucao inicial...")
     solucao = constroi_solucao(entrada, GULOSOS[1])
 
     custo_sol = custo_solucao(entrada, solucao)
-    print(solucao, custo_sol)
+    print({x + 1 for x in solucao}, custo_sol)
 
     now = time()
     melhor = swap_k_opt(entrada, solucao, 4)
@@ -135,6 +155,16 @@ def encontra_solucao_2(entrada: Trabalho):
 
 
 def encontra_solucao(entrada: Trabalho, construtivo: str = "F"):
+    """
+    Encontra uma solução para a instância *entrada* usando o algoritmo baseado no trabalho de Jacobs e Brusco.
+
+    O parâmetro *construtivo* pode ser "aleatorio" ou "F".
+
+    No primeiro caso, a heurística gulosa usada é uma função que retorna um número aleatório de 0 a 1.
+    No segundo caso, a heurística gulosa usada é alguma função da lista GULOSOS.
+
+    A função retorna a solução encontrada (representação interna).
+    """
     from app.jacobs_brusco import jacobs_brusco
     from app.swap_k_opt import swap_k_opt
 
@@ -148,7 +178,7 @@ def encontra_solucao(entrada: Trabalho, construtivo: str = "F"):
         ),
     )
     custo_sol = custo_solucao(entrada, solucao)
-    print(solucao, custo_sol)
+    print({x + 1 for x in solucao}, custo_sol)
 
     now = time()
     best_rho1 = 0
@@ -197,6 +227,11 @@ def encontra_solucao(entrada: Trabalho, construtivo: str = "F"):
 
 
 def resolve(entrada: Instancia, construtivo: str = "F"):
+    """
+    Resolve a instância *entrada*.
+
+    Vide a função encontra_solucao para mais detalhes sobre o parâmetro *construtivo*.
+    """
     trabalho = trabalho_from_instancia(entrada)
     solucao = encontra_solucao(trabalho, construtivo)
     custo = custo_solucao(trabalho, solucao)

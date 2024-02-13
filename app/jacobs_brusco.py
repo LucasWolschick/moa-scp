@@ -6,7 +6,12 @@ from app.resolve import GULOSOS, solucao_valida, remove_redundantes, Trabalho
 
 
 def jacobs_brusco(
-    entrada: Trabalho, rho1: float, rho2: float, S: list[int], Sl: list[int]
+    entrada: Trabalho,
+    rho1: float,
+    rho2: float,
+    S: list[int],
+    Sl: list[int],
+    func=GULOSOS[1],
 ):
     S = list(S)
     Sl = list(Sl)
@@ -44,7 +49,6 @@ def jacobs_brusco(
                 cobre_U[icol] += 1
 
     # toda vez que U é modificado, temos que modificar cobre_U.
-    func = choice(GULOSOS)
 
     while U:
         # 4

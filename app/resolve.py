@@ -1,4 +1,4 @@
-from random import choice
+from random import choice, random
 from typing import Iterable
 from time import time
 
@@ -10,7 +10,7 @@ import math
 
 # Vasco, Wilson (1984)
 GULOSOS = [
-    lambda cj, kj: cj,
+    lambda cj, kj: random(),
     lambda cj, kj: cj / kj,
     lambda cj, kj: cj / kj**2,
     lambda cj, kj: cj**0.5 / kj**2,
@@ -83,7 +83,7 @@ def remove_redundantes(entrada: Trabalho, solucao: list[int]) -> list[int]:
     return l
 
 
-def constroi_solucao(entrada: Trabalho, f=GULOSOS[2]):
+def constroi_solucao(entrada: Trabalho, f=GULOSOS[0]):
     linhas_faltando = list(range(entrada.n_linhas))
     solucao = []
     colunas_nao_usadas = set(range(entrada.n_colunas))
@@ -116,15 +116,36 @@ def rrange(start, stop, steps):
         yield (1 - i / (steps - 1)) * start + i / (steps - 1) * stop
 
 
-def encontra_solucao(entrada: Trabalho):
+def encontra_solucao_2(entrada: Trabalho):
+    from app.swap_k_opt import swap_k_opt
+
+    print("Encontrada solucao inicial...")
+    solucao = constroi_solucao(entrada, GULOSOS[1])
+
+    custo_sol = custo_solucao(entrada, solucao)
+    print(solucao, custo_sol)
+
+    now = time()
+    melhor = swap_k_opt(entrada, solucao, 4)
+    print(f"Levou {time() - now}")
+
+    print(f"Solução valida: {solucao_valida(entrada, melhor)}")
+
+    return melhor
+
+
+def encontra_solucao(entrada: Trabalho, construtivo: str = "F"):
     from app.jacobs_brusco import jacobs_brusco
+    from app.swap_k_opt import swap_k_opt
 
     print("Encontrada solucao inicial...")
     solucao = constroi_solucao(
         entrada,
-        lambda cj, kj: choice(GULOSOS)(cj, kj)
-        if kj > 1
-        else choice(GULOSOS[:5])(cj, kj),
+        (
+            (lambda cj, kj: (choice(GULOSOS)(cj, kj)))
+            if construtivo == "F"
+            else GULOSOS[0]
+        ),
     )
     custo_sol = custo_solucao(entrada, solucao)
     print(solucao, custo_sol)
@@ -139,11 +160,12 @@ def encontra_solucao(entrada: Trabalho):
     melhor = solucao
     custo_melhor_sol = custo_sol
 
-    for rho1 in rrange(0.10, 1.00, 10):
-        for rho2 in rrange(1.1, 3.0, 10):
-            print(rho1, rho2)
+    for rho1 in rrange(1.00, 0.10, 10):
+        for rho2 in rrange(3.0, 1.1, 10):
+            # print(rho1, rho2)
             solucao = old_sol
             custo_sol = custo_old_sol
+            f = GULOSOS[1]
             for _ in range(100):
                 nova_solucao = jacobs_brusco(
                     entrada,
@@ -151,6 +173,7 @@ def encontra_solucao(entrada: Trabalho):
                     rho2,
                     solucao,
                     lista_ordenada.sub(list(range(entrada.n_colunas)), solucao),
+                    f,
                 )
                 custo_nova_solucao = custo_solucao(entrada, nova_solucao)
 
@@ -162,17 +185,20 @@ def encontra_solucao(entrada: Trabalho):
                         custo_melhor_sol = custo_sol
                         best_rho1 = rho1
                         best_rho2 = rho2
+                        print(f"{time()-now} {custo_melhor_sol}")
     print(f"Melhores parâmetros: rho1={best_rho1}, rho2={best_rho2}")
     print(f"Levou {time()-now}")
+
+    melhor = remove_redundantes(entrada, melhor)
 
     print(f"Solução valida: {solucao_valida(entrada, melhor)}")
 
     return melhor
 
 
-def resolve(entrada: Instancia):
+def resolve(entrada: Instancia, construtivo: str = "F"):
     trabalho = trabalho_from_instancia(entrada)
-    solucao = encontra_solucao(trabalho)
+    solucao = encontra_solucao(trabalho, construtivo)
     custo = custo_solucao(trabalho, solucao)
     solucao = {x + 1 for x in solucao}
 
